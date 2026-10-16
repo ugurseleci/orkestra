@@ -1,0 +1,3 @@
+# Windows'ta CRLF'e çevrilen shebang ("node\r") bin/orkestra'yı bozar: depo LF kalır, .cmd CRLF.
+* text=auto eol=lf
+*.cmd text eol=crlf

@@ -17,7 +17,18 @@ Claude Code içinde:
 
 Sonra herhangi bir projede Claude'a "orkestra doctor çalıştır" de ya da doğrudan bir iş ver; `orkestra` skill'i özellik geliştirme ve inceleme işlerinde devreye girer.
 
-Gereken: Node 20+, git. Depoda çalışan ajan (`orkestra agent`) yalnızca macOS'ta çalışır; diğer her şey her sistemde.
+Gereken: Node 20+, git. macOS, Linux ve Windows'ta çalışır; depoda çalışan ajan (`orkestra agent`) yalnızca macOS'ta.
+
+### Windows
+
+- [Git for Windows](https://git-scm.com/downloads/win) kur: Claude Code o zaman Bash aracı olarak Git Bash'i kullanır ve `orkestra` komutları macOS'taki gibi çalışır. Git yoksa Claude Code PowerShell kullanır; orkestra yine çalışır (`bin/orkestra.cmd`, soru `--input <dosya>` ile).
+- Codex: `npm i -g @openai/codex`, sonra `codex login`. npm'in kurduğu `codex.cmd` kabuğu desteklenir.
+- NVIDIA anahtarı (PowerShell):
+  ```powershell
+  New-Item -ItemType Directory -Force "$HOME\.config\orkestra" | Out-Null
+  Set-Content -Encoding ascii "$HOME\.config\orkestra\env" "NVIDIA_API_KEY=nvapi-..."
+  ```
+- `orkestra agent` Windows'ta çalışmaz (kum havuzu macOS'a özgü); ask, panel, critic, review, gate, dashboard çalışır.
 
 ## Modeller: herkes kendi hesabıyla
 

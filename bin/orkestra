@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Eklentinin tek komutu. Eklenti açıkken Claude Code bu klasörü Bash aracının PATH'ine ekler.
+// Windows: Git Bash shebang'i okur; PowerShell ve cmd.exe yanındaki orkestra.cmd'yi kullanır.
 //   orkestra gate | dashboard | doctor | init   ayrı modüller
 //   orkestra ask | panel | critic | review | agent | translate | job | note | usage   → lib/cli.mjs
 

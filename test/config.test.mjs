@@ -44,11 +44,11 @@ test('kapı katmanları package.json betiklerinden ve yerel tsc\'den çıkarıl�
   const dir = project({
     'package.json': JSON.stringify({ scripts: { lint: 'eslint .', test: 'jest', 'test:e2e': 'maestro test' } }),
     'tsconfig.json': '{}',
-    'node_modules/.bin/tsc': '',
+    'node_modules/typescript/bin/tsc': '',
   });
   try {
     const tiers = byKey(detectTiers(dir));
-    assert.equal(tiers.types, 'node_modules/.bin/tsc --noEmit');
+    assert.equal(tiers.types, 'node node_modules/typescript/bin/tsc --noEmit');
     assert.equal(tiers.lint, 'npm run --silent lint');
     assert.equal(tiers.unit, 'npm run --silent test');
     assert.equal(tiers.integration, null);

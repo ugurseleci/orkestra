@@ -21,7 +21,9 @@ Projede `.claude/orkestra/` yoksa ve iş anlamlıysa `orkestra init` öner: kap�
 
 ## Araçlar
 
-`orkestra` komutu eklenti açıkken Bash'te doğrudan çalışır (yoksa: `node "${CLAUDE_PLUGIN_ROOT}/bin/orkestra"`). Soru stdin'den okunur.
+`orkestra` komutu eklenti açıkken Bash'te doğrudan çalışır (bulunamazsa: `node "${CLAUDE_PLUGIN_ROOT}/bin/orkestra"`). Soru stdin'den ya da `--input <dosya>` ile okunur.
+
+**Windows:** Git Bash'te (Bash aracı) komutlar aynen çalışır. PowerShell aracındaysan `orkestra` yerine `node "${CLAUDE_PLUGIN_ROOT}/bin/orkestra"` yaz ve soruyu pipe etme: PowerShell 5.1 Türkçe karakterleri bozabilir. Soruyu Write aracıyla bir dosyaya yaz (ör. `.orkestra/soru.md`) ve `--input .orkestra/soru.md` ver; diff için önce `git diff > .orkestra/diff.txt`, sonra dosyayı birleştir. `(echo …; git diff) |` gibi bash sözdizimini PowerShell'de kullanma. Depoda çalışan ajan (`orkestra agent`) Windows'ta yok.
 
 ```bash
 echo "<soru>" | orkestra ask [--model fast|code|kimi|codex|gemini-flash]
