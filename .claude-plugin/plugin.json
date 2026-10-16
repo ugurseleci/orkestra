@@ -1,0 +1,18 @@
+{
+  "name": "orkestra",
+  "displayName": "Orkestra",
+  "version": "0.1.0",
+  "description": "Claude şef olarak işi planlar; Codex, Gemini (Antigravity) ve NVIDIA NIM modellerinden plan eleştirisi ve kod incelemesi toplar, bulguları doğrulayıp süzer. Her kullanıcı kendi hesabıyla.",
+  "author": {
+    "name": "Uğur Seleci"
+  },
+  "keywords": [
+    "review",
+    "multi-model",
+    "codex",
+    "gemini",
+    "nvidia"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/ugurseleci/orkestra"
+}

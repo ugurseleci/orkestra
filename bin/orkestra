@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+// Eklentinin tek komutu. Eklenti açıkken Claude Code bu klasörü Bash aracının PATH'ine ekler.
+//   orkestra gate | dashboard | doctor | init   ayrı modüller
+//   orkestra ask | panel | critic | review | agent | translate | job | note | usage   → lib/cli.mjs
+
+const [command] = process.argv.slice(2);
+const MODULES = { gate: 'gate.mjs', dashboard: 'dashboard.mjs', doctor: 'doctor.mjs', init: 'init.mjs' };
+
+if (MODULES[command]) {
+  // Alt komut adı argümanlardan çıkarılır: modüller kendi seçeneklerini okur.
+  process.argv.splice(2, 1);
+  await import(new URL(`../lib/${MODULES[command]}`, import.meta.url));
+} else {
+  await import(new URL('../lib/cli.mjs', import.meta.url));
+}

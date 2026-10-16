@@ -1,0 +1,12 @@
+{
+  "name": "ugurseleci",
+  "owner": { "name": "Uğur Seleci" },
+  "description": "Uğur'un Claude Code eklentileri",
+  "plugins": [
+    {
+      "name": "orkestra",
+      "source": "./",
+      "description": "Çok modelli geliştirme orkestrası: plan → mimar paneli → uygulama → reviewer paneli → süzme → doğrulama"
+    }
+  ]
+}

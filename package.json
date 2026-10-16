@@ -1,0 +1,14 @@
+{
+  "name": "orkestra",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Code eklentisi: Claude şef, Codex / Gemini / NVIDIA modelleri danışman ve ajan",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "license": "MIT"
+}

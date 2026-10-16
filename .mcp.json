@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "nvidia": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/lib/server.mjs"],
+      "env": { "ORKESTRA_PROJECT_DIR": "${CLAUDE_PROJECT_DIR}" }
+    }
+  }
+}
