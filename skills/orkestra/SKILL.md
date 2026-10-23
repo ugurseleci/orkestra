@@ -26,13 +26,13 @@ Projede `.claude/orkestra/` yoksa ve iş anlamlıysa `orkestra init` öner: kap�
 **Windows:** Git Bash'te (Bash aracı) komutlar aynen çalışır. PowerShell aracındaysan `orkestra` yerine `node "${CLAUDE_PLUGIN_ROOT}/bin/orkestra"` yaz ve soruyu pipe etme: PowerShell 5.1 Türkçe karakterleri bozabilir. Soruyu Write aracıyla bir dosyaya yaz (ör. `.orkestra/soru.md`) ve `--input .orkestra/soru.md` ver; diff için önce `git diff > .orkestra/diff.txt`, sonra dosyayı birleştir. `(echo …; git diff) |` gibi bash sözdizimini PowerShell'de kullanma. Depoda çalışan ajan (`orkestra agent`) Windows'ta yok.
 
 ```bash
-echo "<soru>" | orkestra ask [--model fast|code|kimi|codex|gemini-flash]
+echo "<soru>" | orkestra ask [--model fast|code|step|codex|gemini-flash]
 git diff | orkestra panel --models codex,gemini-flash,code --system "<rol>"
 echo "<soru>" | orkestra ask --model codex --image ekran.jpg      # görsel: codex ya da NVIDIA vision
 echo "<metin>" | orkestra translate --from tr --to en
 ```
 
-- Model adları: `codex`, `gemini` (yavaş, geniş bağlam), `gemini-flash` (hızlı) ajan CLI'larıdır; `fast`, `code`, `kimi`, `super`, `ultra`, `vision` NVIDIA modelleridir. `codex:<model>` ile model seçilir. Kullanıcı varsayılanları `~/.config/orkestra/config.json` ile değiştirir (`"agents": {"codex": "…"}`, `"models": {…}`).
+- Model adları: `codex`, `gemini` (yavaş, geniş bağlam), `gemini-flash` (hızlı) ajan CLI'larıdır; `fast`, `code`, `step`, `super`, `ultra`, `vision` NVIDIA modelleridir. `codex:<model>` ile model seçilir. Kullanıcı varsayılanları `~/.config/orkestra/config.json` ile değiştirir (`"agents": {"codex": "…"}`, `"models": {…}`).
 - `--models` verilmezse eleştirmen ve inceleme paneli kurulu sağlayıcılardan seçilir (codex, gemini-flash, code, fast sırasıyla ilk ikisi).
 - Modeller yavaştır (10–120+ sn). Panel çağrılarını `run_in_background` ile başlat, beklerken kendi işine devam et.
 - MCP araçları da var (`nvidia_ask`, `nvidia_panel`, `nvidia_translate`, `nvidia_models`); CLI ile aynı modelleri kullanır.
@@ -76,7 +76,7 @@ echo "<soru>"  | orkestra agent --model gemini-flash --task "Uzman inceleme: <ko
 
 | Rol | Model(ler) | Ne zaman |
 |---|---|---|
-| Mimar paneli | `critic` varsayılanı (ek görüş: `kimi`) | Yeni özellik veya mimari karar öncesi: planı eleştir, alternatif öner |
+| Mimar paneli | `critic` varsayılanı (ek görüş: `step`) | Yeni özellik veya mimari karar öncesi: planı eleştir, alternatif öner |
 | Reviewer paneli | `review` varsayılanı (küçük diff'te tek model) | Her anlamlı diff sonrası, bitti demeden önce |
 | Geniş bağlam | `gemini` (arka planda) | Birden çok dosyalık inceleme |
 | Hızlı yardımcı | `fast` | Kısa metin, test verisi, regex, küçük sorular |
