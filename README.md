@@ -81,7 +81,7 @@ Yerel kayıtlar (olaylar, ajan yamaları) projenin `.orkestra/` klasöründe tut
 Claude bunları kendisi çağırır; elle de kullanılabilir (eklentinin `bin/` klasörü üzerinden).
 
 ```
-echo "soru" | orkestra ask [--model fast|code|kimi|codex|gemini-flash]
+echo "soru" | orkestra ask [--model fast|code|step|codex|gemini-flash]
 git diff | orkestra panel --models codex,gemini-flash,code
 cat tasarim.md | orkestra critic --round 1
 (echo "kabul ölçütleri"; git diff) | orkestra review --round 1
