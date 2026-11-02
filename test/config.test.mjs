@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import { defaultAskModel, defaultReviewers, modelAvailable } from '../lib/config.mjs';
+import { API_BASE, endpointFor } from '../lib/nvidia.mjs';
 import { detectTiers, packageManager } from '../lib/tiers.mjs';
 
 const none = { codex: false, agy: false, nvidia: false, sandbox: false };
@@ -28,6 +29,27 @@ test('model sağlayıcısına göre eşlenir; açık model adı da', () => {
   assert.equal(modelAvailable('codex:gpt-5.5', { ...none, codex: true }), true);
   assert.equal(modelAvailable('gemini', { ...none, codex: true }), false);
   assert.equal(modelAvailable('z-ai/glm-5.3', { ...none, nvidia: true }), true);
+});
+
+test('ek sağlayıcının modeli kendi anahtarına bağlıdır', () => {
+  assert.equal(modelAvailable('ornek:m1', { ...none, nvidia: true, custom: { ornek: false } }), false);
+  assert.equal(modelAvailable('ornek:m1', { ...none, custom: { ornek: true } }), true);
+  assert.equal(modelAvailable('z-ai/glm-5.3', { ...none, nvidia: true, custom: { ornek: false } }), true);
+});
+
+test('model id\'si tanımlı sağlayıcıya, değilse NVIDIA\'ya yönlenir', () => {
+  const list = { ornek: { baseUrl: 'https://ornek.test/v1/', keyEnv: 'ORKESTRA_TEST_KEY', minMaxTokens: 16384 } };
+  process.env.ORKESTRA_TEST_KEY = 'k';
+  try {
+    const custom = endpointFor('ornek:model-a:b', list);
+    assert.deepEqual(custom, { base: 'https://ornek.test/v1', apiKey: 'k', keyName: 'ORKESTRA_TEST_KEY', model: 'model-a:b', minMaxTokens: 16384 });
+    const nvidia = endpointFor('z-ai/glm-5.3', list);
+    assert.equal(nvidia.base, API_BASE);
+    assert.equal(nvidia.model, 'z-ai/glm-5.3');
+    assert.equal(endpointFor('baska:m', list).base, API_BASE);
+  } finally {
+    delete process.env.ORKESTRA_TEST_KEY;
+  }
 });
 
 function project(files) {
