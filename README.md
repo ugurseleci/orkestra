@@ -60,6 +60,19 @@ Model tercihleri kişiseldir: `~/.config/orkestra/config.json`
 
 Codex'te model yazılmazsa hesabının varsayılan modeli kullanılır.
 
+### Ek OpenAI uyumlu sağlayıcılar
+
+`/v1/chat/completions` sunan başka bir servisi (kurum içi ya da kendi kurduğun bir sunucu) aynı dosyadan eklersin. Modeller `<sağlayıcı>:<model>` adıyla ya da `models` altında verdiğin kısa adla çağrılır:
+
+```json
+{
+  "providers": { "ornek": { "baseUrl": "https://llm.ornek.com/v1", "keyEnv": "ORNEK_API_KEY", "minMaxTokens": 16384 } },
+  "models": { "ornek-hizli": "ornek:model-id" }
+}
+```
+
+Anahtarı `~/.config/orkestra/env` dosyasına `ORNEK_API_KEY=...` olarak yaz. `minMaxTokens` isteğe bağlıdır: düşünen modeller küçük bir `max_tokens`'ı düşünmeye harcayıp boş dönebiliyor. `orkestra doctor` sağlayıcıyı listeler; `--live` ilk kısa adı dener.
+
 ## Projeye ayar (isteğe bağlı)
 
 ```bash
