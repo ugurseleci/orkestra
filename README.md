@@ -17,7 +17,7 @@ Claude Code içinde:
 
 Sonra herhangi bir projede Claude'a "orkestra doctor çalıştır" de ya da doğrudan bir iş ver; `orkestra` skill'i özellik geliştirme ve inceleme işlerinde devreye girer.
 
-Gereken: Node 20+, git. macOS, Linux ve Windows'ta çalışır; depoda çalışan ajan (`orkestra agent`) yalnızca macOS'ta.
+Gereken: Node 20.3+, git. macOS, Linux ve Windows'ta çalışır. Depoda çalışan ajan (`orkestra agent`): Codex/Gemini ajanı, komut aracı ve yazma kipi yalnızca macOS'ta; Orkestra'nın kendi döngüsü salt okunur kipte her sistemde.
 
 ### Windows
 
@@ -28,7 +28,7 @@ Gereken: Node 20+, git. macOS, Linux ve Windows'ta çalışır; depoda çalışa
   New-Item -ItemType Directory -Force "$HOME\.config\orkestra" | Out-Null
   Set-Content -Encoding ascii "$HOME\.config\orkestra\env" "NVIDIA_API_KEY=nvapi-..."
   ```
-- `orkestra agent` Windows'ta çalışmaz (kum havuzu macOS'a özgü); ask, panel, critic, review, gate, dashboard çalışır.
+- `orkestra agent` Windows'ta yalnız salt okunur çalışır (`--model ultra --tools read,search`): kum havuzu macOS'a özgü olduğu için Codex/Gemini ajanı, komut aracı ve `--write` kapalı. ask, panel, critic, review, gate, dashboard çalışır.
 
 ## Modeller: herkes kendi hesabıyla
 
@@ -73,6 +73,32 @@ Codex'te model yazılmazsa hesabının varsayılan modeli kullanılır.
 
 Anahtarı `~/.config/orkestra/env` dosyasına `ORNEK_API_KEY=...` olarak yaz. `minMaxTokens` isteğe bağlıdır: düşünen modeller küçük bir `max_tokens`'ı düşünmeye harcayıp boş dönebiliyor. `orkestra doctor` sağlayıcıyı listeler; `--live` ilk kısa adı dener.
 
+### Orkestra'nın kendi ajan döngüsü (NVIDIA ve OpenAI uyumlu modeller)
+
+`orkestra agent --model codex|gemini` CLI'ın kendi araçlarını kullanır. Diğer her model için (NVIDIA ya da ek sağlayıcı) Orkestra
+kendi araç döngüsünü yürütür: LangChain'in `create_agent` yapısının bağımlılıksız bir karşılığı (model ↔ araç döngüsü,
+JSON şemalı araçlar, hatayı modele geri veren araç mesajları, middleware kancaları).
+
+```
+echo "soru"  | orkestra agent --model ultra --files lib            # okur, arar, (macOS) komut çalıştırır
+echo "görev" | orkestra agent --model ultra --files lib/a.mjs,test --write   # kopyada düzenler, yama döner
+echo "soru"  | orkestra agent --model ornek:model-id --files src --tools read,search --max-steps 15
+```
+
+- Araçlar: `list_files`, `read_file`, `search` (her sistemde); `run_command` (macOS, ağsız kum havuzu); `edit_file`, `write_file` (`--write`, macOS).
+- Middleware: adım ve araç çağrı sınırı, süre ve token bütçesi, 429'da geri çekilme, eski araç çıktılarını temizleme, çıktı kırpma, anahtar karartma, aynı çağrıyı yineleme bekçisi, isteğe bağlı yedek model.
+- Her adım panoya düşer (araç adı ve yol/komut özeti; dosya içeriği ve çıktı kayda girmez).
+- Model araç çağırabilmeli: `orkestra doctor --live` yoklar. 18 Kasım 2026 yoklaması: `fast`, `step`, `lightning`, `super`, `ultra` çağırıyor; `code` zaman aşımına uğradı.
+
+Ayarlar `~/.config/orkestra/config.json` → `"agent"` (sınırı genişletebilenler yalnız burada):
+
+```json
+{ "agent": { "model": "ultra", "maxSteps": 25, "maxToolCalls": 60, "maxTokens": 400000, "fallback": ["super"], "sandboxRead": ["~/.nvm"] } }
+```
+
+`sandboxRead`: araç zinciri ev klasöründeyse (nvm, volta, flutter) komut aracının okuyabilmesi için. Projenin `.claude/orkestra/config.json`'u
+yalnız daraltır: `"agent": { "exclude": ["secrets/**"], "protect": ["ci"], "denyCommands": ["^git\\s+push"] }`. `exclude` Codex/Gemini ajanının kopyasına da uygulanır.
+
 ## Projeye ayar (isteğe bağlı)
 
 ```bash
@@ -98,7 +124,7 @@ echo "soru" | orkestra ask [--model fast|code|step|codex|gemini-flash]
 git diff | orkestra panel --models codex,gemini-flash,code
 cat tasarim.md | orkestra critic --round 1
 (echo "kabul ölçütleri"; git diff) | orkestra review --round 1
-echo "görev" | orkestra agent --model codex --write [--skill <ad>]
+echo "görev" | orkestra agent --model codex|ultra --files <yol,glob> [--write] [--skill <ad>] [--tools read,search,run,write] [--max-steps n]
 orkestra gate [--e2e]
 orkestra dashboard            # http://localhost:4545, canlı hat
 orkestra job start|done|status · orkestra note · orkestra usage
@@ -108,7 +134,12 @@ orkestra job start|done|status · orkestra note · orkestra usage
 
 - Danışman modellere (ask/panel/critic/review) yalnızca Claude'un prompt'a koyduğu metin gider; Claude'a `.env*`, anahtar ve kullanıcı verisi göndermemesi söylenir.
 - Ajan CLI'ları boş bir geçici klasörde, araçları kapalı çalışır.
-- `orkestra agent` deponun `.env*` dosyaları çıkarılmış bir kopyasında, macOS `sandbox-exec` kum havuzunda çalışır: gerçek depoyu, ev klasörünü ve anahtarları okuyamaz, kopya dışına yazamaz. Ağ açıktır (modele ulaşmak için). Ajanın yaptığı değişiklik yama olarak döner; Claude okuyup uygular.
+- `orkestra agent` deponun gizli dosyaları (`.env*`, `*.pem`, `*.key`, `.npmrc`… ve projenin `agent.exclude`'u) çıkarılmış bir kopyasında çalışır. Kopyanın git dizini kopyanın dışında ve ajana kapalıdır; yama kancasız ve fsmonitor'suz alınır (0.3.0 öncesinde ajan kopyadaki `.git/config`'e yazarak, yama alınırken kullanıcının yetkisiyle komut çalıştırabiliyordu).
+- Codex/Gemini ajanı macOS `sandbox-exec` kum havuzunda çalışır: gerçek depoyu, ev klasörünü ve anahtarları okuyamaz, kopya dışına yazamaz. Ağ açıktır (modele ulaşmak için).
+- Orkestra döngüsü API anahtarını tuttuğu için kum havuzu dışında çalışır; sınır araç başınadır: dosya araçları yolu `realpath` ile çözüp kopyaya kapatır (bağlantı kaçışı, `..`, gizli dosyalar reddedilir), komut aracı ağı kapalı kum havuzunda yalnız kopyada çalışır. Kapsamdaki dosyalar modelin sağlayıcısına gidebilir: kapsamı dar tut, gizli yolları `exclude`'a yaz.
+- **Kapsamı Claude seçer:** `orkestra agent` `--files` olmadan çalışmaz; kopyaya yalnız Claude'un seçtiği yollar girer. Modele hangi dosyanın gidebileceğini model değil Claude belirler.
+- **Değişiklik kendi denetimini değiştiremez:** ajan `.claude/`, `.agents/`, CI tanımları, `CLAUDE.md`, `REVIEW.md` ve `agent.protect` desenlerine yazamaz, bunlara dokunan yama reddedilir; test dosyasına dokunan yama uyarı alır. `orkestra gate` kapı ayarı ya da test betikleri değiştiyse uyarır, aynı işte üç kez üst üste kırmızıysa kullanıcıya danışılmasını söyler.
+- Ajanın yaptığı değişiklik yama olarak döner; Claude okuyup uygular.
 - Bilinen sınır: Antigravity girişini macOS anahtar zincirinde tuttuğu için `agy` ajanında anahtar zinciri dosyası (şifreli) okumaya açıktır.
 
 ## Geliştirme

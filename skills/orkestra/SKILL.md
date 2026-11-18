@@ -59,18 +59,36 @@ orkestra job done --status merged|closed                            # birleştir
 - **Mercekler:** doğruluk, güvenlik, test, plana uygunluk, mimari, üretim. Modellere paylaştırılır; cevap mercek başlıklarına göre bölünür. Projenin `lenses.md`'sindeki maddeler ilgili merceğe eklenir. "Bulgu var" doğrulanmamış bulgudur.
 - **Kapı** revizyona bağlıdır: kapıdan sonra kod değişirse yeşil geçersizdir; düzeltmeden sonra yeniden koş. Katman tanımlı değilse `orkestra init` ya da `.claude/orkestra/config.json` → `"gate"`.
 
-## Depoda çalışan ajanlar (yalnızca macOS)
+## Depoda çalışan ajanlar
 
 ```bash
-echo "<görev>" | orkestra agent --model codex --skill <skill> --write --task "Test yazarı: <modül>"
-echo "<soru>"  | orkestra agent --model gemini-flash --task "Uzman inceleme: <konu>"
+echo "<görev>" | orkestra agent --model codex --files lib/tarih.mjs,test --skill <skill> --write --task "Test yazarı: <modül>"
+echo "<soru>"  | orkestra agent --model gemini-flash --files src/odeme --task "Uzman inceleme: <konu>"
+echo "<soru>"  | orkestra agent --model ultra --files lib --task "Araştırma: <konu>"            # Orkestra döngüsü
+echo "<görev>" | orkestra agent --model ultra --files lib/a.mjs,test/a.test.mjs --write --max-steps 30 --task "…"
 ```
 
-- **Kopya ve kum havuzu:** ajan deponun kopyasında çalışır; kopyada `.env*` yoktur, ajan gerçek depoyu, ev klasörünü ve anahtarları okuyamaz, kopya dışına yazamaz. `--write` yoksa kopyaya da yazamaz. Ağ açıktır (modele ulaşmak için).
+- **Kapsamı Claude seçer (`--files`, zorunlu):** modele hangi dosyanın gideceğine model değil Claude karar verir. Kopyaya yalnız `--files` ile verilen yollar ve desenler girer (köke bağlı: `lib` klasörün tamamı, `lib/a.mjs` tek dosya, `src/**/*.ts` desen). Görevin gerçekten gerektirdiği en dar kümeyi ver: değişecek dosya, testi, doğrudan bağımlılıkları. Bütün depoyu (`.`) yalnız gerekçesi varsa ver. Gizli dosyalar kapsamda olsa da girmez; kapsam dışını ya da depo dışını gösteren bağlantılar da girmez. JS testlerini koşturacaksan `node_modules`'ı kapsama ayrıca yaz (yoksa bağlanmaz). Seçilen kapsam çıktıda ve panoda görünür. Ajan sembolik bağlantı ekleyen yama üretemez.
+- **Değişiklik kendi denetimini değiştiremez:** ajan `.claude/`, `.agents/`, CI tanımları, `CLAUDE.md`, `REVIEW.md` ve projenin `agent.protect` desenlerine yazamaz; bunlara dokunan yama reddedilir. Test dosyalarına dokunan yama uyarı alır: testin gevşetilip gevşetilmediğine (silinen beklenti, `skip`, eklenen bekleme/yeniden deneme) ayrıca bak.
+
+- **İki motor:** `codex`/`gemini`/`gemini-flash` CLI'ın kendi araçlarıyla, bütünüyle kum havuzunda (yalnız macOS). Diğer her model (NVIDIA, ek sağlayıcı) **Orkestra'nın araç döngüsünde** çalışır: `list_files`, `read_file`, `search` her sistemde; `run_command` (ağsız kum havuzu) ve `--write` ile `edit_file`/`write_file` yalnız macOS. `--tools read,search,run,write` kümeleri seçer, `--max-steps` model turunu sınırlar. Varsayılan model `ultra` (~2 sn/tur); model araç çağıramıyorsa `orkestra doctor --live` söyler.
+- **Kopya ve kum havuzu:** ajan deponun kopyasında çalışır; kopyada gizli dosyalar (`.env*`, anahtar dosyaları, projenin `agent.exclude`'u) yoktur, kopya bir git deposu değildir. Ajan gerçek depoyu, ev klasörünü ve anahtarları okuyamaz, kopya dışına yazamaz. `--write` yoksa kopyaya da yazamaz.
 - **Skill** (`--skill`, tekrarlanabilir): projedeki `.agents/skills/<ad>/SKILL.md` ya da `.claude/skills/<ad>/SKILL.md` ajanın uzmanlık talimatı olur.
-- **Yama** (`--write`): `.orkestra/patches/` altına yazılır. Claude yamayı OKUR, sonra `git apply --3way` ile uygular ve kapıyı koşar. Okunmamış yama uygulanmaz; ajan "testler geçti" dese de kapı yeniden koşulur.
-- **Ne devredilir:** saf modüle birim testi, kaynaklı araştırma, bir alanın uzman incelemesi, iyi tanımlı tek modüllük değişiklik. **Ne devredilmez:** canlıya alma, veritabanı, anahtar gerektiren her şey, commit ve push, kullanıcıyla konuşulacak kararlar.
-- Ajan çağrıları abonelik kotası harcar; her küçük soru için değil, mimar paneli, son inceleme ve görsel inceleme için kullan. `orkestra usage` model başına çağrı ve token toplamını gösterir.
+- **Yama** (`--write`): `.orkestra/patches/` altına yazılır. Claude yamayı OKUR, sonra `git apply --3way` ile uygular ve kapıyı koşar. Okunmamış yama uygulanmaz; ajan "testler geçti" dese de kapı yeniden koşulur. Zayıf modellerin yaması çalışsa da temizlik ister (kullanılmayan değişken, yanlış yerde kod): uygularken düzelt.
+- **Ne devredilir:** saf modüle birim testi, kaynaklı araştırma, bir alanın uzman incelemesi, iyi tanımlı tek modüllük değişiklik; Orkestra döngüsü ayrıca "bu nerede kullanılıyor", "testleri koş ve kalanları açıkla" gibi depo okuma işlerinde ucuzdur. **Ne devredilmez:** canlıya alma, veritabanı, anahtar gerektiren her şey, commit ve push, kullanıcıyla konuşulacak kararlar.
+- **Veri:** Orkestra döngüsünde modele hangi dosyanın gideceğini model seçer; hassas depoda `--tools read,search` ve dar görev ver, gizli yolları projenin `agent.exclude`'una yaz.
+- Ajan çağrıları kota harcar; her küçük soru için değil. `orkestra usage` model başına çağrı ve token toplamını gösterir; panoda döngünün her adımı (araç ve yol) görünür.
+
+## Doğrulama kuralları
+
+"How the Claude Code team thinks about verification" (16 Kasım 2026) yazısından; güvenlik ve kalite için:
+
+- **Doğrulama, değişikliği çalıştırmaktır.** Kapı yeşili yeterli değil; uygulamayı uçtan uca çalıştırıp değişen akışı dene (web: tarayıcı, mobil: simülatör, arka uç: servisi yerelde koş). Projede bunun yolu `.claude/skills/verify/` gibi bir skill'de yazılı olmalı.
+- **Üç turda düzelmeyen hata insana gider.** Aynı işte kapı üç kez üst üste kırmızıysa `orkestra gate` bunu söyler: düzeltmeyi bırak, ne denendiğini anlatıp kullanıcıya sor.
+- **Değişiklik kendi denetimini değiştiremez.** Kapı ayarı (`.claude/orkestra/`) ya da `package.json` test betikleri değiştiyse kapı uyarır: o farkı kullanıcıya göster, onaysız yeşile güvenme. Ajanlar bu dosyalara hiç yazamaz.
+- **Kararsız (flaky) testi geçirmek için tekrar koşma, bekleme ekleme, atlama.** Kök nedeni bul; bulunamazsa testi sil ve nedenini yaz.
+- **İnceleme revizyona bağlıdır.** Eski revizyonun yeşili ya da onayı geçersizdir; düzeltmeden sonra kapı ve gerekiyorsa inceleme yeniden.
+- **Kaçırılan hatayı kurala çevir.** İncelemenin kaçırdığı ve sonra bulunan hata, diff'ten tanınabiliyorsa projenin `lenses.md`'sine ya da `checklist.md`'sine madde olur. Bu dosyaları ara ara buda.
 
 ## Roller
 
