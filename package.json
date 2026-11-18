@@ -1,11 +1,11 @@
 {
   "name": "orkestra",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Claude Code eklentisi: Claude şef, Codex / Gemini / NVIDIA modelleri danışman ve ajan",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.3"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"
