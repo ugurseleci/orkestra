@@ -76,7 +76,7 @@ Anahtarı `~/.config/orkestra/env` dosyasına `ORNEK_API_KEY=...` olarak yaz. `m
 ### Orkestra'nın kendi ajan döngüsü (NVIDIA ve OpenAI uyumlu modeller)
 
 `orkestra agent --model codex|gemini` CLI'ın kendi araçlarını kullanır. Diğer her model için (NVIDIA ya da ek sağlayıcı) Orkestra
-kendi araç döngüsünü yürütür: LangChain'in `create_agent` yapısının bağımlılıksız bir karşılığı (model ↔ araç döngüsü,
+kendi araç döngüsünü yürütür: bağımlılıksız bir model ↔ araç döngüsü (
 JSON şemalı araçlar, hatayı modele geri veren araç mesajları, middleware kancaları).
 
 ```
